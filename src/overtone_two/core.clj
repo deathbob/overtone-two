@@ -6,7 +6,7 @@
   (out 0 (* amp (sin-osc [freq freq]))))
 ;  (out 0 (* amp (saw [freq freq]))))
 
-(defsynth beep5 [freq 440 amp 0.16]
+(defsynth beep5 [freq 440 amp 0.45]
   (out 0 (distort (* 0.2 (sin-osc freq))))
   (out 1 (* 0.1 (lf-pulse:ar freq)))
   )
@@ -20,6 +20,18 @@
      (sin-osc [freq freq])
      amp))
 
+(definst beep7 [freq 440 sustain 4.0 amp 0.9]
+  (* (env-gen (env-lin 0 sustain 0) 1 1 0 1 FREE)
+     (lf-pulse:ar [freq freq])
+     amp))
+
+(defn fib[x m n]
+  (if (< x 3)
+    (+ m n)
+    (fib (- x 1) n (+ m n))))
+; (gimme-notes (map #(fib %1 0 1) (range 8 23)))
+; (gimme-notes (map #(* 10 (fib %1 0 1)) (range 3 18)))
+
 (defn grindb[notes at-times durations]
   (let [time (now)]
     (doseq [[chord offset duration] (map list notes (map #(* 1000 %) at-times) durations)]
@@ -28,8 +40,16 @@
 
 (definst saw-wave [freq 440 attack 0.05 sustain 1.0 release 0.5 vol 0.6]
   (* (env-gen (env-lin attack sustain release) 1 1 0 1 FREE)
-     (sin-osc [freq freq])
+;     (sin-osc [freq freq])
+     (saw [freq freq])
      vol))
+
+(defn gimme-notes[notes]
+  (let [time (now)
+        offsets (range 0 (* 1000 (count notes)) 1000)
+        ]
+    (doseq [[note offset] (map list notes offsets)]
+      (at (+ time offset) (beep7 note)))))
 
 
 
